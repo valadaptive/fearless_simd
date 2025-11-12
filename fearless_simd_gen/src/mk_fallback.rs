@@ -8,7 +8,7 @@
 
 use crate::arch::fallback::{self, Fallback};
 use crate::generic::{generic_combine, generic_op, generic_split};
-use crate::ops::{OpSig, TyFlavor, ops_for_type, reinterpret_ty, valid_reinterpret};
+use crate::ops::{OpSig, TyFlavor, ops_for_type, valid_reinterpret};
 use crate::types::{SIMD_TYPES, ScalarType, VecType, type_imports};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
@@ -33,7 +33,7 @@ pub fn mk_fallback_impl() -> TokenStream {
 
     quote! {
         use core::ops::*;
-        use crate::{seal::Seal, Level, Simd, SimdInto};
+        use crate::{Bytes, seal::Seal, Level, Simd, SimdInto};
 
         #imports
 
@@ -350,14 +350,9 @@ fn mk_simd_impl() -> TokenStream {
                 }
                 OpSig::Reinterpret(scalar, scalar_bits) => {
                     if valid_reinterpret(vec_ty, scalar, scalar_bits) {
-                        let to_ty = reinterpret_ty(vec_ty, scalar, scalar_bits).rust();
-
                         quote! {
                             #method_sig {
-                                #to_ty {
-                                    val: bytemuck::cast(a.val),
-                                    simd: a.simd,
-                                }
+                                a.bitcast()
                             }
                         }
                     } else {
