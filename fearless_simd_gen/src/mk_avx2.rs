@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::arch::x86::{
-    self, coarse_type, extend_intrinsic, intrinsic_ident, pack_intrinsic, set1_intrinsic,
-    simple_intrinsic,
+    self, cast_ident, coarse_type, extend_intrinsic, intrinsic_ident, pack_intrinsic,
+    set1_intrinsic, simple_intrinsic, simple_sign_unaware_intrinsic,
 };
 use crate::generic::{generic_combine, generic_op, generic_split, scalar_binary};
 use crate::mk_sse4_2;
@@ -205,6 +205,7 @@ fn make_method(method: &str, sig: OpSig, vec_ty: &VecType) -> TokenStream {
         OpSig::Select => mk_sse4_2::handle_select(method_sig, vec_ty),
         OpSig::Combine => handle_combine(method_sig, vec_ty),
         OpSig::Split => handle_split(method_sig, vec_ty),
+        OpSig::Permute => handle_permute(method_sig, vec_ty),
         OpSig::Zip(zip1) => mk_sse4_2::handle_zip(method_sig, vec_ty, zip1),
         OpSig::Unzip(select_even) => mk_sse4_2::handle_unzip(method_sig, vec_ty, select_even),
         OpSig::Cvt(scalar, target_scalar_bits) => {
@@ -261,6 +262,59 @@ pub(crate) fn handle_combine(method_sig: TokenStream, vec_ty: &VecType) -> Token
         }
     } else {
         generic_combine(vec_ty)
+    }
+}
+
+pub(crate) fn handle_permute(method_sig: TokenStream, vec_ty: &VecType) -> TokenStream {
+    match vec_ty.scalar_bits {
+        32 | 64 => {
+            let float_ty = VecType::new(ScalarType::Float, vec_ty.scalar_bits, vec_ty.len);
+            let mask_ty = vec_ty.mask_ty();
+            let permutevar = simple_intrinsic("permutevar", &float_ty);
+
+            // For 64-bit, _mm_permutevar_pd uses bit 1, not bit 0, so we need to shift left by 1
+            let indices_expr = if vec_ty.scalar_bits == 64 {
+                let shift_left = simple_sign_unaware_intrinsic("slli", &mask_ty);
+                quote! { #shift_left::<1>(b.into()) }
+            } else {
+                quote! { b.into() }
+            };
+
+            let expr = if vec_ty.scalar == ScalarType::Float {
+                quote! {
+                    unsafe {
+                        #permutevar(a.into(), #indices_expr).simd_into(self)
+                    }
+                }
+            } else {
+                let cast_to_float = cast_ident(
+                    vec_ty.scalar,
+                    ScalarType::Float,
+                    vec_ty.scalar_bits,
+                    vec_ty.scalar_bits,
+                    vec_ty.n_bits(),
+                );
+                let cast_from_float = cast_ident(
+                    ScalarType::Float,
+                    vec_ty.scalar,
+                    vec_ty.scalar_bits,
+                    vec_ty.scalar_bits,
+                    vec_ty.n_bits(),
+                );
+                quote! {
+                    unsafe {
+                        #cast_from_float(#permutevar(#cast_to_float(a.into()), #indices_expr)).simd_into(self)
+                    }
+                }
+            };
+
+            quote! {
+                #method_sig {
+                    #expr
+                }
+            }
+        }
+        _ => mk_sse4_2::handle_permute(method_sig, vec_ty),
     }
 }
 

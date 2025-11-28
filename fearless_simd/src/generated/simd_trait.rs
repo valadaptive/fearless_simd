@@ -85,6 +85,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> mask32x4<Self>;
     fn simd_ge_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> mask32x4<Self>;
     fn simd_gt_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> mask32x4<Self>;
+    fn permute_within_blocks_f32x4(self, a: f32x4<Self>, b: mask32x4<Self>) -> f32x4<Self>;
     fn zip_low_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> f32x4<Self>;
     fn zip_high_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> f32x4<Self>;
     fn unzip_low_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> f32x4<Self>;
@@ -122,6 +123,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> mask8x16<Self>;
     fn simd_ge_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> mask8x16<Self>;
     fn simd_gt_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> mask8x16<Self>;
+    fn permute_within_blocks_i8x16(self, a: i8x16<Self>, b: mask8x16<Self>) -> i8x16<Self>;
     fn zip_low_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> i8x16<Self>;
     fn zip_high_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> i8x16<Self>;
     fn unzip_low_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> i8x16<Self>;
@@ -149,6 +151,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> mask8x16<Self>;
     fn simd_ge_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> mask8x16<Self>;
     fn simd_gt_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> mask8x16<Self>;
+    fn permute_within_blocks_u8x16(self, a: u8x16<Self>, b: mask8x16<Self>) -> u8x16<Self>;
     fn zip_low_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> u8x16<Self>;
     fn zip_high_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> u8x16<Self>;
     fn unzip_low_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> u8x16<Self>;
@@ -188,6 +191,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> mask16x8<Self>;
     fn simd_ge_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> mask16x8<Self>;
     fn simd_gt_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> mask16x8<Self>;
+    fn permute_within_blocks_i16x8(self, a: i16x8<Self>, b: mask16x8<Self>) -> i16x8<Self>;
     fn zip_low_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> i16x8<Self>;
     fn zip_high_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> i16x8<Self>;
     fn unzip_low_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> i16x8<Self>;
@@ -215,6 +219,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> mask16x8<Self>;
     fn simd_ge_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> mask16x8<Self>;
     fn simd_gt_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> mask16x8<Self>;
+    fn permute_within_blocks_u16x8(self, a: u16x8<Self>, b: mask16x8<Self>) -> u16x8<Self>;
     fn zip_low_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> u16x8<Self>;
     fn zip_high_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> u16x8<Self>;
     fn unzip_low_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> u16x8<Self>;
@@ -254,6 +259,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> mask32x4<Self>;
     fn simd_ge_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> mask32x4<Self>;
     fn simd_gt_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> mask32x4<Self>;
+    fn permute_within_blocks_i32x4(self, a: i32x4<Self>, b: mask32x4<Self>) -> i32x4<Self>;
     fn zip_low_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> i32x4<Self>;
     fn zip_high_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> i32x4<Self>;
     fn unzip_low_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> i32x4<Self>;
@@ -282,6 +288,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> mask32x4<Self>;
     fn simd_ge_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> mask32x4<Self>;
     fn simd_gt_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> mask32x4<Self>;
+    fn permute_within_blocks_u32x4(self, a: u32x4<Self>, b: mask32x4<Self>) -> u32x4<Self>;
     fn zip_low_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> u32x4<Self>;
     fn zip_high_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> u32x4<Self>;
     fn unzip_low_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> u32x4<Self>;
@@ -319,6 +326,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> mask64x2<Self>;
     fn simd_ge_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> mask64x2<Self>;
     fn simd_gt_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> mask64x2<Self>;
+    fn permute_within_blocks_f64x2(self, a: f64x2<Self>, b: mask64x2<Self>) -> f64x2<Self>;
     fn zip_low_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> f64x2<Self>;
     fn zip_high_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> f64x2<Self>;
     fn unzip_low_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> f64x2<Self>;
@@ -362,6 +370,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> mask32x8<Self>;
     fn simd_ge_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> mask32x8<Self>;
     fn simd_gt_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> mask32x8<Self>;
+    fn permute_within_blocks_f32x8(self, a: f32x8<Self>, b: mask32x8<Self>) -> f32x8<Self>;
     fn zip_low_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> f32x8<Self>;
     fn zip_high_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> f32x8<Self>;
     fn unzip_low_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> f32x8<Self>;
@@ -400,6 +409,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> mask8x32<Self>;
     fn simd_ge_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> mask8x32<Self>;
     fn simd_gt_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> mask8x32<Self>;
+    fn permute_within_blocks_i8x32(self, a: i8x32<Self>, b: mask8x32<Self>) -> i8x32<Self>;
     fn zip_low_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> i8x32<Self>;
     fn zip_high_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> i8x32<Self>;
     fn unzip_low_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> i8x32<Self>;
@@ -428,6 +438,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> mask8x32<Self>;
     fn simd_ge_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> mask8x32<Self>;
     fn simd_gt_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> mask8x32<Self>;
+    fn permute_within_blocks_u8x32(self, a: u8x32<Self>, b: mask8x32<Self>) -> u8x32<Self>;
     fn zip_low_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> u8x32<Self>;
     fn zip_high_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> u8x32<Self>;
     fn unzip_low_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> u8x32<Self>;
@@ -469,6 +480,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> mask16x16<Self>;
     fn simd_ge_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> mask16x16<Self>;
     fn simd_gt_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> mask16x16<Self>;
+    fn permute_within_blocks_i16x16(self, a: i16x16<Self>, b: mask16x16<Self>) -> i16x16<Self>;
     fn zip_low_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> i16x16<Self>;
     fn zip_high_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> i16x16<Self>;
     fn unzip_low_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> i16x16<Self>;
@@ -497,6 +509,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> mask16x16<Self>;
     fn simd_ge_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> mask16x16<Self>;
     fn simd_gt_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> mask16x16<Self>;
+    fn permute_within_blocks_u16x16(self, a: u16x16<Self>, b: mask16x16<Self>) -> u16x16<Self>;
     fn zip_low_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> u16x16<Self>;
     fn zip_high_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> u16x16<Self>;
     fn unzip_low_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> u16x16<Self>;
@@ -539,6 +552,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> mask32x8<Self>;
     fn simd_ge_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> mask32x8<Self>;
     fn simd_gt_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> mask32x8<Self>;
+    fn permute_within_blocks_i32x8(self, a: i32x8<Self>, b: mask32x8<Self>) -> i32x8<Self>;
     fn zip_low_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> i32x8<Self>;
     fn zip_high_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> i32x8<Self>;
     fn unzip_low_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> i32x8<Self>;
@@ -568,6 +582,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> mask32x8<Self>;
     fn simd_ge_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> mask32x8<Self>;
     fn simd_gt_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> mask32x8<Self>;
+    fn permute_within_blocks_u32x8(self, a: u32x8<Self>, b: mask32x8<Self>) -> u32x8<Self>;
     fn zip_low_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> u32x8<Self>;
     fn zip_high_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> u32x8<Self>;
     fn unzip_low_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> u32x8<Self>;
@@ -607,6 +622,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> mask64x4<Self>;
     fn simd_ge_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> mask64x4<Self>;
     fn simd_gt_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> mask64x4<Self>;
+    fn permute_within_blocks_f64x4(self, a: f64x4<Self>, b: mask64x4<Self>) -> f64x4<Self>;
     fn zip_low_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> f64x4<Self>;
     fn zip_high_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> f64x4<Self>;
     fn unzip_low_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> f64x4<Self>;
@@ -652,6 +668,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> mask32x16<Self>;
     fn simd_ge_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> mask32x16<Self>;
     fn simd_gt_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> mask32x16<Self>;
+    fn permute_within_blocks_f32x16(self, a: f32x16<Self>, b: mask32x16<Self>) -> f32x16<Self>;
     fn zip_low_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> f32x16<Self>;
     fn zip_high_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> f32x16<Self>;
     fn unzip_low_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> f32x16<Self>;
@@ -691,6 +708,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> mask8x64<Self>;
     fn simd_ge_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> mask8x64<Self>;
     fn simd_gt_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> mask8x64<Self>;
+    fn permute_within_blocks_i8x64(self, a: i8x64<Self>, b: mask8x64<Self>) -> i8x64<Self>;
     fn zip_low_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> i8x64<Self>;
     fn zip_high_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> i8x64<Self>;
     fn unzip_low_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> i8x64<Self>;
@@ -718,6 +736,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> mask8x64<Self>;
     fn simd_ge_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> mask8x64<Self>;
     fn simd_gt_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> mask8x64<Self>;
+    fn permute_within_blocks_u8x64(self, a: u8x64<Self>, b: mask8x64<Self>) -> u8x64<Self>;
     fn zip_low_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> u8x64<Self>;
     fn zip_high_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> u8x64<Self>;
     fn unzip_low_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> u8x64<Self>;
@@ -758,6 +777,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> mask16x32<Self>;
     fn simd_ge_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> mask16x32<Self>;
     fn simd_gt_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> mask16x32<Self>;
+    fn permute_within_blocks_i16x32(self, a: i16x32<Self>, b: mask16x32<Self>) -> i16x32<Self>;
     fn zip_low_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> i16x32<Self>;
     fn zip_high_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> i16x32<Self>;
     fn unzip_low_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> i16x32<Self>;
@@ -785,6 +805,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> mask16x32<Self>;
     fn simd_ge_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> mask16x32<Self>;
     fn simd_gt_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> mask16x32<Self>;
+    fn permute_within_blocks_u16x32(self, a: u16x32<Self>, b: mask16x32<Self>) -> u16x32<Self>;
     fn zip_low_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> u16x32<Self>;
     fn zip_high_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> u16x32<Self>;
     fn unzip_low_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> u16x32<Self>;
@@ -827,6 +848,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> mask32x16<Self>;
     fn simd_ge_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> mask32x16<Self>;
     fn simd_gt_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> mask32x16<Self>;
+    fn permute_within_blocks_i32x16(self, a: i32x16<Self>, b: mask32x16<Self>) -> i32x16<Self>;
     fn zip_low_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> i32x16<Self>;
     fn zip_high_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> i32x16<Self>;
     fn unzip_low_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> i32x16<Self>;
@@ -855,6 +877,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> mask32x16<Self>;
     fn simd_ge_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> mask32x16<Self>;
     fn simd_gt_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> mask32x16<Self>;
+    fn permute_within_blocks_u32x16(self, a: u32x16<Self>, b: mask32x16<Self>) -> u32x16<Self>;
     fn zip_low_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> u32x16<Self>;
     fn zip_high_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> u32x16<Self>;
     fn unzip_low_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> u32x16<Self>;
@@ -894,6 +917,7 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn simd_le_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> mask64x8<Self>;
     fn simd_ge_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> mask64x8<Self>;
     fn simd_gt_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> mask64x8<Self>;
+    fn permute_within_blocks_f64x8(self, a: f64x8<Self>, b: mask64x8<Self>) -> f64x8<Self>;
     fn zip_low_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> f64x8<Self>;
     fn zip_high_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> f64x8<Self>;
     fn unzip_low_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> f64x8<Self>;
@@ -993,6 +1017,7 @@ pub trait SimdFloat<Element: SimdElement, S: Simd>:
     fn simd_le(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
     fn simd_ge(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> Self;
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> Self;
     fn zip_high(self, rhs: impl SimdInto<Self, S>) -> Self;
     fn unzip_low(self, rhs: impl SimdInto<Self, S>) -> Self;
@@ -1050,6 +1075,7 @@ pub trait SimdInt<Element: SimdElement, S: Simd>:
     fn simd_le(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
     fn simd_ge(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> Self::Mask;
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> Self;
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> Self;
     fn zip_high(self, rhs: impl SimdInto<Self, S>) -> Self;
     fn unzip_low(self, rhs: impl SimdInto<Self, S>) -> Self;

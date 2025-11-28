@@ -333,6 +333,62 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                 }
                 OpSig::Combine => generic_combine(vec_ty),
                 OpSig::Split => generic_split(vec_ty),
+                OpSig::Permute => {
+                    let mask_ty = vec_ty.mask_ty();
+                    let table_mask = match vec_ty.scalar_bits {
+                        8 => quote! { b.into() },
+                        16 | 32 => {
+                            // To turn a 16/32-bit shuffle into an 8-bit shuffle, we need to duplicate the lowest byte
+                            // of each lane into the upper bytes, multiply by the lane width in bytes, then add a
+                            // byte-level offset. The duplicate/multiply can be done in a single multiply.
+                            let (mul, add) = match vec_ty.scalar_bits {
+                                16 => (quote! { 0x0202 }, quote! { 0x0100 }),
+                                32 => (quote! { 0x04040404 }, quote! { 0x03020100 }),
+                                _ => unreachable!(),
+                            };
+
+                            let mla = simple_intrinsic("vmla", &mask_ty);
+                            let dup = split_intrinsic("vdup", "n", &mask_ty);
+                            quote! { #mla(#dup(#add), b.into(), #dup(#mul)) }
+                        }
+                        64 => {
+                            // We can't use the same multiply-add trick for 64-bit indices as we can with 16-bit and
+                            // 32-bit indices because there is no 64-bit multiply instruction. For the x86
+                            // implementation, we shuffle the mask itself to get the indices in the right place. We want
+                            // to avoid that here, because LLVM can't currently constant-fold `tbl` operations even if
+                            // the operands are constant (unlike their x86 equivalents).
+                            quote! {
+                                {
+                                    let mut table_mask = vshlq_n_s64::<3>(b.into());
+                                    table_mask = vsliq_n_s64::<8>(table_mask, table_mask);
+                                    table_mask = vsliq_n_s64::<16>(table_mask, table_mask);
+                                    table_mask = vsliq_n_s64::<32>(table_mask, table_mask);
+                                    vaddq_s64(table_mask, vdupq_n_s64(0x0706050403020100))
+                                }
+                            }
+                        }
+                        _ => unreachable!(),
+                    };
+                    let bits_ty = VecType::new(ScalarType::Unsigned, 8, vec_ty.n_bits() / 8);
+                    let mask_to_u8 = cvt_intrinsic("vreinterpret", &bits_ty, &mask_ty);
+
+                    let main_expr = if &bits_ty == vec_ty {
+                        quote! { vqtbl1q_u8(a.into(), #mask_to_u8(table_mask)).simd_into(self) }
+                    } else {
+                        let input_to_u8 = cvt_intrinsic("vreinterpret", &bits_ty, vec_ty);
+                        let u8_to_output = cvt_intrinsic("vreinterpret", vec_ty, &bits_ty);
+                        quote! { #u8_to_output(vqtbl1q_u8(#input_to_u8(a.into()), #mask_to_u8(table_mask))).simd_into(self) }
+                    };
+
+                    quote! {
+                        #method_sig {
+                            unsafe {
+                                let table_mask = #table_mask;
+                                #main_expr
+                            }
+                        }
+                    }
+                }
                 OpSig::Zip(zip1) => {
                     let neon = if zip1 { "vzip1" } else { "vzip2" };
                     let zip = simple_intrinsic(neon, vec_ty);

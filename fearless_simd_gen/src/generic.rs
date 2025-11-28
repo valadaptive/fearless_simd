@@ -146,6 +146,20 @@ pub(crate) fn generic_op(op: &str, sig: OpSig, ty: &VecType) -> TokenStream {
                 }
             }
         }
+        OpSig::Permute => {
+            let mask_ty = VecType::new(ScalarType::Mask, ty.scalar_bits, ty.len);
+            let mask = mask_ty.rust();
+            let split_mask =
+                Ident::new(&format!("split_{}", mask_ty.rust_name()), Span::call_site());
+            quote! {
+                #[inline(always)]
+                fn #name(self, a: #ty_rust<Self>, b: #mask<Self>) -> #ret_ty {
+                    let (a0, a1) = self.#split(a);
+                    let (b0, b1) = self.#split_mask(b);
+                    self.#combine(self.#do_half(a0, b0), self.#do_half(a1, b1))
+                }
+            }
+        }
         OpSig::Zip(zip1) => {
             let (e1, e2, e3) = if zip1 {
                 (

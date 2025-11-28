@@ -16,6 +16,7 @@ pub(crate) enum OpSig {
     Select,
     Combine,
     Split,
+    Permute,
     Zip(bool),
     Unzip(bool),
     Cvt(ScalarType, usize),
@@ -46,6 +47,7 @@ pub(crate) const FLOAT_OPS: &[(&str, OpSig)] = &[
     ("simd_le", OpSig::Compare),
     ("simd_ge", OpSig::Compare),
     ("simd_gt", OpSig::Compare),
+    ("permute_within_blocks", OpSig::Permute),
     ("zip_low", OpSig::Zip(true)),
     ("zip_high", OpSig::Zip(false)),
     ("unzip_low", OpSig::Unzip(true)),
@@ -81,6 +83,7 @@ pub(crate) const INT_OPS: &[(&str, OpSig)] = &[
     ("simd_le", OpSig::Compare),
     ("simd_ge", OpSig::Compare),
     ("simd_gt", OpSig::Compare),
+    ("permute_within_blocks", OpSig::Permute),
     ("zip_low", OpSig::Zip(true)),
     ("zip_high", OpSig::Zip(false)),
     ("unzip_low", OpSig::Unzip(true)),
@@ -209,6 +212,10 @@ impl OpSig {
                 let ty = store_interleaved_arg_ty(*block_size, *i, vec_ty);
                 quote! { self, #ty }
             }
+            Self::Permute => {
+                let mask_ty = vec_ty.mask_ty().rust();
+                quote! { self, a: #ty<Self>, b: #mask_ty<Self> }
+            }
             Self::Unary
             | Self::Split
             | Self::Cvt(_, _)
@@ -247,6 +254,9 @@ impl OpSig {
             Self::Ternary => {
                 quote! { self, op1: impl SimdInto<Self, S>, op2: impl SimdInto<Self, S> }
             }
+            Self::Permute => {
+                quote! { self, indices: impl SimdInto<Self::Mask, S> }
+            }
             // select is currently done by trait, but maybe we'll implement for
             // masks.
             Self::Select => return None,
@@ -267,6 +277,7 @@ impl OpSig {
             | Self::Binary
             | Self::Select
             | Self::Ternary
+            | Self::Permute
             | Self::Shift
             | Self::LoadInterleaved(_, _) => {
                 let rust = ty.rust();

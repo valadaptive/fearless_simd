@@ -190,6 +190,7 @@ fn make_method(method: &str, sig: OpSig, vec_ty: &VecType) -> TokenStream {
         OpSig::Select => handle_select(method_sig, vec_ty),
         OpSig::Combine => generic_combine(vec_ty),
         OpSig::Split => generic_split(vec_ty),
+        OpSig::Permute => handle_permute(method_sig, vec_ty),
         OpSig::Zip(zip1) => handle_zip(method_sig, vec_ty, zip1),
         OpSig::Unzip(select_even) => handle_unzip(method_sig, vec_ty, select_even),
         OpSig::Cvt(scalar, target_scalar_bits) => {
@@ -554,6 +555,98 @@ pub(crate) fn handle_select(method_sig: TokenStream, vec_ty: &VecType) -> TokenS
     quote! {
         #method_sig {
             unsafe { #expr.simd_into(self) }
+        }
+    }
+}
+
+pub(crate) fn handle_permute(method_sig: TokenStream, vec_ty: &VecType) -> TokenStream {
+    let mask_ty = vec_ty.mask_ty();
+    let shuffle = intrinsic_ident("shuffle", "epi8", vec_ty.n_bits());
+    let input_cast = if vec_ty.scalar == ScalarType::Float {
+        let cast = cast_ident(
+            ScalarType::Float,
+            ScalarType::Mask,
+            vec_ty.scalar_bits,
+            mask_ty.scalar_bits,
+            vec_ty.n_bits(),
+        );
+        quote! { #cast(a.into()) }
+    } else {
+        quote! { a.into() }
+    };
+    let expr = match vec_ty.scalar_bits {
+        8 => {
+            quote! { unsafe { #shuffle(a.into(), b.into()).simd_into(self) } }
+        }
+        16 | 32 => {
+            let mul_op = simple_sign_unaware_intrinsic("mullo", &mask_ty);
+            let add_op = simple_sign_unaware_intrinsic("add", &mask_ty);
+            let set1 = set1_intrinsic(&mask_ty);
+
+            // To turn a 16/32-bit shuffle into an 8-bit shuffle, we need to duplicate the lowest byte of each lane into
+            // the upper bytes, multiply by the lane width in bytes, then add a byte-level offset. The
+            // duplicate/multiply can be done in a single multiply.
+            let (mul, add) = match vec_ty.scalar_bits {
+                16 => (quote! { 0x0202 }, quote! { 0x0100 }),
+                32 => (quote! { 0x04040404 }, quote! { 0x03020100 }),
+                _ => unreachable!(),
+            };
+            let mut shuffle_op = quote! { #shuffle(#input_cast, shuffle_mask) };
+            if vec_ty.scalar == ScalarType::Float {
+                let cast = cast_ident(
+                    ScalarType::Mask,
+                    ScalarType::Float,
+                    vec_ty.scalar_bits,
+                    mask_ty.scalar_bits,
+                    vec_ty.n_bits(),
+                );
+                shuffle_op = quote! { #cast(#shuffle_op) };
+            }
+            quote! {
+                unsafe {
+                    let shuffle_mask = #add_op(#mul_op(b.into(), #set1(#mul)), #set1(#add));
+                    #shuffle_op.simd_into(self)
+                }
+            }
+        }
+        64 => {
+            // We can't use the same multiply-add trick for 64-bit indices as we can with 16-bit and 32-bit indices
+            // because there is no 64-bit multiply instruction in anything below AVX-512. Instead, we do a double
+            // shuffle. This should be avoided if possible, because x86 CPUs typically only have 1-2 execution "ports"
+            // capable of handling shuffle operations, but we have to do it for 64-bit indices.
+            let pre_mask_items = quote! { 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8 };
+            let pre_mask = match vec_ty.n_bits() {
+                128 => quote! { _mm_setr_epi8(#pre_mask_items) },
+                256 => quote! { _mm256_setr_epi8(#pre_mask_items, #pre_mask_items) },
+                _ => unimplemented!(),
+            };
+            let shift_left = simple_sign_unaware_intrinsic("slli", &mask_ty);
+            let add_op = simple_sign_unaware_intrinsic("add", &mask_ty);
+            let set1 = set1_intrinsic(&mask_ty);
+            let mut shuffle_op = quote! { #shuffle(#input_cast, shuffle_mask) };
+            if vec_ty.scalar == ScalarType::Float {
+                let cast = cast_ident(
+                    ScalarType::Mask,
+                    ScalarType::Float,
+                    vec_ty.scalar_bits,
+                    mask_ty.scalar_bits,
+                    vec_ty.n_bits(),
+                );
+                shuffle_op = quote! { #cast(#shuffle_op) };
+            }
+            quote! {
+                unsafe {
+                    let shuffle_mask = #add_op(#shift_left::<3>(#shuffle(b.into(), #pre_mask)), #set1(0x0706050403020100));
+                    #shuffle_op.simd_into(self)
+                }
+            }
+        }
+        _ => unreachable!(),
+    };
+
+    quote! {
+        #method_sig {
+            #expr
         }
     }
 }

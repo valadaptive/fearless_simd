@@ -111,6 +111,17 @@ impl Simd for Neon {
         unsafe { vreinterpretq_s32_u32(vcgtq_f32(a.into(), b.into())).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_f32x4(self, a: f32x4<Self>, b: mask32x4<Self>) -> f32x4<Self> {
+        unsafe {
+            let table_mask = vmlaq_s32(vdupq_n_s32(0x03020100), b.into(), vdupq_n_s32(0x04040404));
+            vreinterpretq_f32_u8(vqtbl1q_u8(
+                vreinterpretq_u8_f32(a.into()),
+                vreinterpretq_u8_s32(table_mask),
+            ))
+            .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> f32x4<Self> {
         let x = a.into();
         let y = b.into();
@@ -274,6 +285,17 @@ impl Simd for Neon {
         unsafe { vreinterpretq_s8_u8(vcgtq_s8(a.into(), b.into())).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x16(self, a: i8x16<Self>, b: mask8x16<Self>) -> i8x16<Self> {
+        unsafe {
+            let table_mask = b.into();
+            vreinterpretq_s8_u8(vqtbl1q_u8(
+                vreinterpretq_u8_s8(a.into()),
+                vreinterpretq_u8_s8(table_mask),
+            ))
+            .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> i8x16<Self> {
         let x = a.into();
         let y = b.into();
@@ -391,6 +413,13 @@ impl Simd for Neon {
     #[inline(always)]
     fn simd_gt_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> mask8x16<Self> {
         unsafe { vreinterpretq_s8_u8(vcgtq_u8(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u8x16(self, a: u8x16<Self>, b: mask8x16<Self>) -> u8x16<Self> {
+        unsafe {
+            let table_mask = b.into();
+            vqtbl1q_u8(a.into(), vreinterpretq_u8_s8(table_mask)).simd_into(self)
+        }
     }
     #[inline(always)]
     fn zip_low_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> u8x16<Self> {
@@ -552,6 +581,17 @@ impl Simd for Neon {
         unsafe { vreinterpretq_s16_u16(vcgtq_s16(a.into(), b.into())).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x8(self, a: i16x8<Self>, b: mask16x8<Self>) -> i16x8<Self> {
+        unsafe {
+            let table_mask = vmlaq_s16(vdupq_n_s16(0x0100), b.into(), vdupq_n_s16(0x0202));
+            vreinterpretq_s16_u8(vqtbl1q_u8(
+                vreinterpretq_u8_s16(a.into()),
+                vreinterpretq_u8_s16(table_mask),
+            ))
+            .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> i16x8<Self> {
         let x = a.into();
         let y = b.into();
@@ -669,6 +709,17 @@ impl Simd for Neon {
     #[inline(always)]
     fn simd_gt_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> mask16x8<Self> {
         unsafe { vreinterpretq_s16_u16(vcgtq_u16(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x8(self, a: u16x8<Self>, b: mask16x8<Self>) -> u16x8<Self> {
+        unsafe {
+            let table_mask = vmlaq_s16(vdupq_n_s16(0x0100), b.into(), vdupq_n_s16(0x0202));
+            vreinterpretq_u16_u8(vqtbl1q_u8(
+                vreinterpretq_u8_u16(a.into()),
+                vreinterpretq_u8_s16(table_mask),
+            ))
+            .simd_into(self)
+        }
     }
     #[inline(always)]
     fn zip_low_u16x8(self, a: u16x8<Self>, b: u16x8<Self>) -> u16x8<Self> {
@@ -826,6 +877,17 @@ impl Simd for Neon {
         unsafe { vreinterpretq_s32_u32(vcgtq_s32(a.into(), b.into())).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x4(self, a: i32x4<Self>, b: mask32x4<Self>) -> i32x4<Self> {
+        unsafe {
+            let table_mask = vmlaq_s32(vdupq_n_s32(0x03020100), b.into(), vdupq_n_s32(0x04040404));
+            vreinterpretq_s32_u8(vqtbl1q_u8(
+                vreinterpretq_u8_s32(a.into()),
+                vreinterpretq_u8_s32(table_mask),
+            ))
+            .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> i32x4<Self> {
         let x = a.into();
         let y = b.into();
@@ -947,6 +1009,17 @@ impl Simd for Neon {
     #[inline(always)]
     fn simd_gt_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> mask32x4<Self> {
         unsafe { vreinterpretq_s32_u32(vcgtq_u32(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x4(self, a: u32x4<Self>, b: mask32x4<Self>) -> u32x4<Self> {
+        unsafe {
+            let table_mask = vmlaq_s32(vdupq_n_s32(0x03020100), b.into(), vdupq_n_s32(0x04040404));
+            vreinterpretq_u32_u8(vqtbl1q_u8(
+                vreinterpretq_u8_u32(a.into()),
+                vreinterpretq_u8_s32(table_mask),
+            ))
+            .simd_into(self)
+        }
     }
     #[inline(always)]
     fn zip_low_u32x4(self, a: u32x4<Self>, b: u32x4<Self>) -> u32x4<Self> {
@@ -1097,6 +1170,23 @@ impl Simd for Neon {
     #[inline(always)]
     fn simd_gt_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> mask64x2<Self> {
         unsafe { vreinterpretq_s64_u64(vcgtq_f64(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x2(self, a: f64x2<Self>, b: mask64x2<Self>) -> f64x2<Self> {
+        unsafe {
+            let table_mask = {
+                let mut table_mask = vshlq_n_s64::<3>(b.into());
+                table_mask = vsliq_n_s64::<8>(table_mask, table_mask);
+                table_mask = vsliq_n_s64::<16>(table_mask, table_mask);
+                table_mask = vsliq_n_s64::<32>(table_mask, table_mask);
+                vaddq_s64(table_mask, vdupq_n_s64(0x0706050403020100))
+            };
+            vreinterpretq_f64_u8(vqtbl1q_u8(
+                vreinterpretq_u8_f64(a.into()),
+                vreinterpretq_u8_s64(table_mask),
+            ))
+            .simd_into(self)
+        }
     }
     #[inline(always)]
     fn zip_low_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> f64x2<Self> {
@@ -1296,6 +1386,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_f32x8(a);
         let (b0, b1) = self.split_f32x8(b);
         self.combine_mask32x4(self.simd_gt_f32x4(a0, b0), self.simd_gt_f32x4(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f32x8(self, a: f32x8<Self>, b: mask32x8<Self>) -> f32x8<Self> {
+        let (a0, a1) = self.split_f32x8(a);
+        let (b0, b1) = self.split_mask32x8(b);
+        self.combine_f32x4(
+            self.permute_within_blocks_f32x4(a0, b0),
+            self.permute_within_blocks_f32x4(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> f32x8<Self> {
@@ -1534,6 +1633,15 @@ impl Simd for Neon {
         self.combine_mask8x16(self.simd_gt_i8x16(a0, b0), self.simd_gt_i8x16(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x32(self, a: i8x32<Self>, b: mask8x32<Self>) -> i8x32<Self> {
+        let (a0, a1) = self.split_i8x32(a);
+        let (b0, b1) = self.split_mask8x32(b);
+        self.combine_i8x16(
+            self.permute_within_blocks_i8x16(a0, b0),
+            self.permute_within_blocks_i8x16(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> i8x32<Self> {
         let (a0, _) = self.split_i8x32(a);
         let (b0, _) = self.split_i8x32(b);
@@ -1700,6 +1808,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u8x32(a);
         let (b0, b1) = self.split_u8x32(b);
         self.combine_mask8x16(self.simd_gt_u8x16(a0, b0), self.simd_gt_u8x16(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u8x32(self, a: u8x32<Self>, b: mask8x32<Self>) -> u8x32<Self> {
+        let (a0, a1) = self.split_u8x32(a);
+        let (b0, b1) = self.split_mask8x32(b);
+        self.combine_u8x16(
+            self.permute_within_blocks_u8x16(a0, b0),
+            self.permute_within_blocks_u8x16(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> u8x32<Self> {
@@ -1929,6 +2046,15 @@ impl Simd for Neon {
         self.combine_mask16x8(self.simd_gt_i16x8(a0, b0), self.simd_gt_i16x8(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x16(self, a: i16x16<Self>, b: mask16x16<Self>) -> i16x16<Self> {
+        let (a0, a1) = self.split_i16x16(a);
+        let (b0, b1) = self.split_mask16x16(b);
+        self.combine_i16x8(
+            self.permute_within_blocks_i16x8(a0, b0),
+            self.permute_within_blocks_i16x8(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> i16x16<Self> {
         let (a0, _) = self.split_i16x16(a);
         let (b0, _) = self.split_i16x16(b);
@@ -2095,6 +2221,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u16x16(a);
         let (b0, b1) = self.split_u16x16(b);
         self.combine_mask16x8(self.simd_gt_u16x8(a0, b0), self.simd_gt_u16x8(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x16(self, a: u16x16<Self>, b: mask16x16<Self>) -> u16x16<Self> {
+        let (a0, a1) = self.split_u16x16(a);
+        let (b0, b1) = self.split_mask16x16(b);
+        self.combine_u16x8(
+            self.permute_within_blocks_u16x8(a0, b0),
+            self.permute_within_blocks_u16x8(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u16x16(self, a: u16x16<Self>, b: u16x16<Self>) -> u16x16<Self> {
@@ -2333,6 +2468,15 @@ impl Simd for Neon {
         self.combine_mask32x4(self.simd_gt_i32x4(a0, b0), self.simd_gt_i32x4(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x8(self, a: i32x8<Self>, b: mask32x8<Self>) -> i32x8<Self> {
+        let (a0, a1) = self.split_i32x8(a);
+        let (b0, b1) = self.split_mask32x8(b);
+        self.combine_i32x4(
+            self.permute_within_blocks_i32x4(a0, b0),
+            self.permute_within_blocks_i32x4(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> i32x8<Self> {
         let (a0, _) = self.split_i32x8(a);
         let (b0, _) = self.split_i32x8(b);
@@ -2504,6 +2648,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u32x8(a);
         let (b0, b1) = self.split_u32x8(b);
         self.combine_mask32x4(self.simd_gt_u32x4(a0, b0), self.simd_gt_u32x4(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x8(self, a: u32x8<Self>, b: mask32x8<Self>) -> u32x8<Self> {
+        let (a0, a1) = self.split_u32x8(a);
+        let (b0, b1) = self.split_mask32x8(b);
+        self.combine_u32x4(
+            self.permute_within_blocks_u32x4(a0, b0),
+            self.permute_within_blocks_u32x4(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u32x8(self, a: u32x8<Self>, b: u32x8<Self>) -> u32x8<Self> {
@@ -2716,6 +2869,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_f64x4(a);
         let (b0, b1) = self.split_f64x4(b);
         self.combine_mask64x2(self.simd_gt_f64x2(a0, b0), self.simd_gt_f64x2(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x4(self, a: f64x4<Self>, b: mask64x4<Self>) -> f64x4<Self> {
+        let (a0, a1) = self.split_f64x4(a);
+        let (b0, b1) = self.split_mask64x4(b);
+        self.combine_f64x2(
+            self.permute_within_blocks_f64x2(a0, b0),
+            self.permute_within_blocks_f64x2(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> f64x4<Self> {
@@ -2975,6 +3137,15 @@ impl Simd for Neon {
         self.combine_mask32x8(self.simd_gt_f32x8(a0, b0), self.simd_gt_f32x8(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_f32x16(self, a: f32x16<Self>, b: mask32x16<Self>) -> f32x16<Self> {
+        let (a0, a1) = self.split_f32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_f32x8(
+            self.permute_within_blocks_f32x8(a0, b0),
+            self.permute_within_blocks_f32x8(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> f32x16<Self> {
         let (a0, _) = self.split_f32x16(a);
         let (b0, _) = self.split_f32x16(b);
@@ -3212,6 +3383,15 @@ impl Simd for Neon {
         self.combine_mask8x32(self.simd_gt_i8x32(a0, b0), self.simd_gt_i8x32(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x64(self, a: i8x64<Self>, b: mask8x64<Self>) -> i8x64<Self> {
+        let (a0, a1) = self.split_i8x64(a);
+        let (b0, b1) = self.split_mask8x64(b);
+        self.combine_i8x32(
+            self.permute_within_blocks_i8x32(a0, b0),
+            self.permute_within_blocks_i8x32(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> i8x64<Self> {
         let (a0, _) = self.split_i8x64(a);
         let (b0, _) = self.split_i8x64(b);
@@ -3371,6 +3551,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u8x64(a);
         let (b0, b1) = self.split_u8x64(b);
         self.combine_mask8x32(self.simd_gt_u8x32(a0, b0), self.simd_gt_u8x32(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u8x64(self, a: u8x64<Self>, b: mask8x64<Self>) -> u8x64<Self> {
+        let (a0, a1) = self.split_u8x64(a);
+        let (b0, b1) = self.split_mask8x64(b);
+        self.combine_u8x32(
+            self.permute_within_blocks_u8x32(a0, b0),
+            self.permute_within_blocks_u8x32(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> u8x64<Self> {
@@ -3589,6 +3778,15 @@ impl Simd for Neon {
         self.combine_mask16x16(self.simd_gt_i16x16(a0, b0), self.simd_gt_i16x16(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x32(self, a: i16x32<Self>, b: mask16x32<Self>) -> i16x32<Self> {
+        let (a0, a1) = self.split_i16x32(a);
+        let (b0, b1) = self.split_mask16x32(b);
+        self.combine_i16x16(
+            self.permute_within_blocks_i16x16(a0, b0),
+            self.permute_within_blocks_i16x16(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> i16x32<Self> {
         let (a0, _) = self.split_i16x32(a);
         let (b0, _) = self.split_i16x32(b);
@@ -3757,6 +3955,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u16x32(a);
         let (b0, b1) = self.split_u16x32(b);
         self.combine_mask16x16(self.simd_gt_u16x16(a0, b0), self.simd_gt_u16x16(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x32(self, a: u16x32<Self>, b: mask16x32<Self>) -> u16x32<Self> {
+        let (a0, a1) = self.split_u16x32(a);
+        let (b0, b1) = self.split_mask16x32(b);
+        self.combine_u16x16(
+            self.permute_within_blocks_u16x16(a0, b0),
+            self.permute_within_blocks_u16x16(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> u16x32<Self> {
@@ -3997,6 +4204,15 @@ impl Simd for Neon {
         self.combine_mask32x8(self.simd_gt_i32x8(a0, b0), self.simd_gt_i32x8(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x16(self, a: i32x16<Self>, b: mask32x16<Self>) -> i32x16<Self> {
+        let (a0, a1) = self.split_i32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_i32x8(
+            self.permute_within_blocks_i32x8(a0, b0),
+            self.permute_within_blocks_i32x8(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> i32x16<Self> {
         let (a0, _) = self.split_i32x16(a);
         let (b0, _) = self.split_i32x16(b);
@@ -4161,6 +4377,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_u32x16(a);
         let (b0, b1) = self.split_u32x16(b);
         self.combine_mask32x8(self.simd_gt_u32x8(a0, b0), self.simd_gt_u32x8(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x16(self, a: u32x16<Self>, b: mask32x16<Self>) -> u32x16<Self> {
+        let (a0, a1) = self.split_u32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_u32x8(
+            self.permute_within_blocks_u32x8(a0, b0),
+            self.permute_within_blocks_u32x8(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> u32x16<Self> {
@@ -4367,6 +4592,15 @@ impl Simd for Neon {
         let (a0, a1) = self.split_f64x8(a);
         let (b0, b1) = self.split_f64x8(b);
         self.combine_mask64x4(self.simd_gt_f64x4(a0, b0), self.simd_gt_f64x4(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x8(self, a: f64x8<Self>, b: mask64x8<Self>) -> f64x8<Self> {
+        let (a0, a1) = self.split_f64x8(a);
+        let (b0, b1) = self.split_mask64x8(b);
+        self.combine_f64x4(
+            self.permute_within_blocks_f64x4(a0, b0),
+            self.permute_within_blocks_f64x4(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> f64x8<Self> {

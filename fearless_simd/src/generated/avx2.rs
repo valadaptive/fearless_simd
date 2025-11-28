@@ -120,6 +120,10 @@ impl Simd for Avx2 {
         unsafe { _mm_castps_si128(_mm_cmpgt_ps(a.into(), b.into())).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_f32x4(self, a: f32x4<Self>, b: mask32x4<Self>) -> f32x4<Self> {
+        unsafe { _mm_permutevar_ps(a.into(), b.into()).simd_into(self) }
+    }
+    #[inline(always)]
     fn zip_low_f32x4(self, a: f32x4<Self>, b: f32x4<Self>) -> f32x4<Self> {
         unsafe { _mm_unpacklo_ps(a.into(), b.into()).simd_into(self) }
     }
@@ -326,6 +330,10 @@ impl Simd for Avx2 {
         unsafe { _mm_cmpgt_epi8(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x16(self, a: i8x16<Self>, b: mask8x16<Self>) -> i8x16<Self> {
+        unsafe { _mm_shuffle_epi8(a.into(), b.into()).simd_into(self) }
+    }
+    #[inline(always)]
     fn zip_low_i8x16(self, a: i8x16<Self>, b: i8x16<Self>) -> i8x16<Self> {
         unsafe { _mm_unpacklo_epi8(a.into(), b.into()).simd_into(self) }
     }
@@ -479,6 +487,10 @@ impl Simd for Avx2 {
         }
     }
     #[inline(always)]
+    fn permute_within_blocks_u8x16(self, a: u8x16<Self>, b: mask8x16<Self>) -> u8x16<Self> {
+        unsafe { _mm_shuffle_epi8(a.into(), b.into()).simd_into(self) }
+    }
+    #[inline(always)]
     fn zip_low_u8x16(self, a: u8x16<Self>, b: u8x16<Self>) -> u8x16<Self> {
         unsafe { _mm_unpacklo_epi8(a.into(), b.into()).simd_into(self) }
     }
@@ -630,6 +642,16 @@ impl Simd for Avx2 {
         unsafe { _mm_cmpgt_epi16(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x8(self, a: i16x8<Self>, b: mask16x8<Self>) -> i16x8<Self> {
+        unsafe {
+            let shuffle_mask = _mm_add_epi16(
+                _mm_mullo_epi16(b.into(), _mm_set1_epi16(0x0202)),
+                _mm_set1_epi16(0x0100),
+            );
+            _mm_shuffle_epi8(a.into(), shuffle_mask).simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i16x8(self, a: i16x8<Self>, b: i16x8<Self>) -> i16x8<Self> {
         unsafe { _mm_unpacklo_epi16(a.into(), b.into()).simd_into(self) }
     }
@@ -755,6 +777,16 @@ impl Simd for Avx2 {
             let a_signed = _mm_xor_si128(a.into(), sign_bit);
             let b_signed = _mm_xor_si128(b.into(), sign_bit);
             _mm_cmpgt_epi16(a_signed, b_signed).simd_into(self)
+        }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x8(self, a: u16x8<Self>, b: mask16x8<Self>) -> u16x8<Self> {
+        unsafe {
+            let shuffle_mask = _mm_add_epi16(
+                _mm_mullo_epi16(b.into(), _mm_set1_epi16(0x0202)),
+                _mm_set1_epi16(0x0100),
+            );
+            _mm_shuffle_epi8(a.into(), shuffle_mask).simd_into(self)
         }
     }
     #[inline(always)]
@@ -909,6 +941,13 @@ impl Simd for Avx2 {
         unsafe { _mm_cmpgt_epi32(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x4(self, a: i32x4<Self>, b: mask32x4<Self>) -> i32x4<Self> {
+        unsafe {
+            _mm_castps_si128(_mm_permutevar_ps(_mm_castsi128_ps(a.into()), b.into()))
+                .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i32x4(self, a: i32x4<Self>, b: i32x4<Self>) -> i32x4<Self> {
         unsafe { _mm_unpacklo_epi32(a.into(), b.into()).simd_into(self) }
     }
@@ -1036,6 +1075,13 @@ impl Simd for Avx2 {
             let a_signed = _mm_xor_si128(a.into(), sign_bit);
             let b_signed = _mm_xor_si128(b.into(), sign_bit);
             _mm_cmpgt_epi32(a_signed, b_signed).simd_into(self)
+        }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x4(self, a: u32x4<Self>, b: mask32x4<Self>) -> u32x4<Self> {
+        unsafe {
+            _mm_castps_si128(_mm_permutevar_ps(_mm_castsi128_ps(a.into()), b.into()))
+                .simd_into(self)
         }
     }
     #[inline(always)]
@@ -1191,6 +1237,10 @@ impl Simd for Avx2 {
     #[inline(always)]
     fn simd_gt_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> mask64x2<Self> {
         unsafe { _mm_castpd_si128(_mm_cmpgt_pd(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x2(self, a: f64x2<Self>, b: mask64x2<Self>) -> f64x2<Self> {
+        unsafe { _mm_permutevar_pd(a.into(), _mm_slli_epi64::<1>(b.into())).simd_into(self) }
     }
     #[inline(always)]
     fn zip_low_f64x2(self, a: f64x2<Self>, b: f64x2<Self>) -> f64x2<Self> {
@@ -1355,6 +1405,10 @@ impl Simd for Avx2 {
     #[inline(always)]
     fn simd_gt_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> mask32x8<Self> {
         unsafe { _mm256_castps_si256(_mm256_cmp_ps::<30i32>(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f32x8(self, a: f32x8<Self>, b: mask32x8<Self>) -> f32x8<Self> {
+        unsafe { _mm256_permutevar_ps(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
     fn zip_low_f32x8(self, a: f32x8<Self>, b: f32x8<Self>) -> f32x8<Self> {
@@ -1595,6 +1649,10 @@ impl Simd for Avx2 {
         unsafe { _mm256_cmpgt_epi8(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x32(self, a: i8x32<Self>, b: mask8x32<Self>) -> i8x32<Self> {
+        unsafe { _mm256_shuffle_epi8(a.into(), b.into()).simd_into(self) }
+    }
+    #[inline(always)]
     fn zip_low_i8x32(self, a: i8x32<Self>, b: i8x32<Self>) -> i8x32<Self> {
         unsafe {
             let lo = _mm256_unpacklo_epi8(a.into(), b.into());
@@ -1782,6 +1840,10 @@ impl Simd for Avx2 {
             let b_signed = _mm256_xor_si256(b.into(), sign_bit);
             _mm256_cmpgt_epi8(a_signed, b_signed).simd_into(self)
         }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u8x32(self, a: u8x32<Self>, b: mask8x32<Self>) -> u8x32<Self> {
+        unsafe { _mm256_shuffle_epi8(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
     fn zip_low_u8x32(self, a: u8x32<Self>, b: u8x32<Self>) -> u8x32<Self> {
@@ -1990,6 +2052,16 @@ impl Simd for Avx2 {
         unsafe { _mm256_cmpgt_epi16(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x16(self, a: i16x16<Self>, b: mask16x16<Self>) -> i16x16<Self> {
+        unsafe {
+            let shuffle_mask = _mm256_add_epi16(
+                _mm256_mullo_epi16(b.into(), _mm256_set1_epi16(0x0202)),
+                _mm256_set1_epi16(0x0100),
+            );
+            _mm256_shuffle_epi8(a.into(), shuffle_mask).simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i16x16(self, a: i16x16<Self>, b: i16x16<Self>) -> i16x16<Self> {
         unsafe {
             let lo = _mm256_unpacklo_epi16(a.into(), b.into());
@@ -2153,6 +2225,16 @@ impl Simd for Avx2 {
             let a_signed = _mm256_xor_si256(a.into(), sign_bit);
             let b_signed = _mm256_xor_si256(b.into(), sign_bit);
             _mm256_cmpgt_epi16(a_signed, b_signed).simd_into(self)
+        }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x16(self, a: u16x16<Self>, b: mask16x16<Self>) -> u16x16<Self> {
+        unsafe {
+            let shuffle_mask = _mm256_add_epi16(
+                _mm256_mullo_epi16(b.into(), _mm256_set1_epi16(0x0202)),
+                _mm256_set1_epi16(0x0100),
+            );
+            _mm256_shuffle_epi8(a.into(), shuffle_mask).simd_into(self)
         }
     }
     #[inline(always)]
@@ -2369,6 +2451,16 @@ impl Simd for Avx2 {
         unsafe { _mm256_cmpgt_epi32(a.into(), b.into()).simd_into(self) }
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x8(self, a: i32x8<Self>, b: mask32x8<Self>) -> i32x8<Self> {
+        unsafe {
+            _mm256_castps_si256(_mm256_permutevar_ps(
+                _mm256_castsi256_ps(a.into()),
+                b.into(),
+            ))
+            .simd_into(self)
+        }
+    }
+    #[inline(always)]
     fn zip_low_i32x8(self, a: i32x8<Self>, b: i32x8<Self>) -> i32x8<Self> {
         unsafe {
             let lo = _mm256_unpacklo_epi32(a.into(), b.into());
@@ -2524,6 +2616,16 @@ impl Simd for Avx2 {
             let a_signed = _mm256_xor_si256(a.into(), sign_bit);
             let b_signed = _mm256_xor_si256(b.into(), sign_bit);
             _mm256_cmpgt_epi32(a_signed, b_signed).simd_into(self)
+        }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x8(self, a: u32x8<Self>, b: mask32x8<Self>) -> u32x8<Self> {
+        unsafe {
+            _mm256_castps_si256(_mm256_permutevar_ps(
+                _mm256_castsi256_ps(a.into()),
+                b.into(),
+            ))
+            .simd_into(self)
         }
     }
     #[inline(always)]
@@ -2722,6 +2824,10 @@ impl Simd for Avx2 {
     #[inline(always)]
     fn simd_gt_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> mask64x4<Self> {
         unsafe { _mm256_castpd_si256(_mm256_cmp_pd::<30i32>(a.into(), b.into())).simd_into(self) }
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x4(self, a: f64x4<Self>, b: mask64x4<Self>) -> f64x4<Self> {
+        unsafe { _mm256_permutevar_pd(a.into(), _mm256_slli_epi64::<1>(b.into())).simd_into(self) }
     }
     #[inline(always)]
     fn zip_low_f64x4(self, a: f64x4<Self>, b: f64x4<Self>) -> f64x4<Self> {
@@ -2945,6 +3051,15 @@ impl Simd for Avx2 {
         let (a0, a1) = self.split_f32x16(a);
         let (b0, b1) = self.split_f32x16(b);
         self.combine_mask32x8(self.simd_gt_f32x8(a0, b0), self.simd_gt_f32x8(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f32x16(self, a: f32x16<Self>, b: mask32x16<Self>) -> f32x16<Self> {
+        let (a0, a1) = self.split_f32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_f32x8(
+            self.permute_within_blocks_f32x8(a0, b0),
+            self.permute_within_blocks_f32x8(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_f32x16(self, a: f32x16<Self>, b: f32x16<Self>) -> f32x16<Self> {
@@ -3221,6 +3336,15 @@ impl Simd for Avx2 {
         self.combine_mask8x32(self.simd_gt_i8x32(a0, b0), self.simd_gt_i8x32(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i8x64(self, a: i8x64<Self>, b: mask8x64<Self>) -> i8x64<Self> {
+        let (a0, a1) = self.split_i8x64(a);
+        let (b0, b1) = self.split_mask8x64(b);
+        self.combine_i8x32(
+            self.permute_within_blocks_i8x32(a0, b0),
+            self.permute_within_blocks_i8x32(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i8x64(self, a: i8x64<Self>, b: i8x64<Self>) -> i8x64<Self> {
         let (a0, _) = self.split_i8x64(a);
         let (b0, _) = self.split_i8x64(b);
@@ -3380,6 +3504,15 @@ impl Simd for Avx2 {
         let (a0, a1) = self.split_u8x64(a);
         let (b0, b1) = self.split_u8x64(b);
         self.combine_mask8x32(self.simd_gt_u8x32(a0, b0), self.simd_gt_u8x32(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u8x64(self, a: u8x64<Self>, b: mask8x64<Self>) -> u8x64<Self> {
+        let (a0, a1) = self.split_u8x64(a);
+        let (b0, b1) = self.split_mask8x64(b);
+        self.combine_u8x32(
+            self.permute_within_blocks_u8x32(a0, b0),
+            self.permute_within_blocks_u8x32(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u8x64(self, a: u8x64<Self>, b: u8x64<Self>) -> u8x64<Self> {
@@ -3645,6 +3778,15 @@ impl Simd for Avx2 {
         self.combine_mask16x16(self.simd_gt_i16x16(a0, b0), self.simd_gt_i16x16(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i16x32(self, a: i16x32<Self>, b: mask16x32<Self>) -> i16x32<Self> {
+        let (a0, a1) = self.split_i16x32(a);
+        let (b0, b1) = self.split_mask16x32(b);
+        self.combine_i16x16(
+            self.permute_within_blocks_i16x16(a0, b0),
+            self.permute_within_blocks_i16x16(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i16x32(self, a: i16x32<Self>, b: i16x32<Self>) -> i16x32<Self> {
         let (a0, _) = self.split_i16x32(a);
         let (b0, _) = self.split_i16x32(b);
@@ -3813,6 +3955,15 @@ impl Simd for Avx2 {
         let (a0, a1) = self.split_u16x32(a);
         let (b0, b1) = self.split_u16x32(b);
         self.combine_mask16x16(self.simd_gt_u16x16(a0, b0), self.simd_gt_u16x16(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u16x32(self, a: u16x32<Self>, b: mask16x32<Self>) -> u16x32<Self> {
+        let (a0, a1) = self.split_u16x32(a);
+        let (b0, b1) = self.split_mask16x32(b);
+        self.combine_u16x16(
+            self.permute_within_blocks_u16x16(a0, b0),
+            self.permute_within_blocks_u16x16(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u16x32(self, a: u16x32<Self>, b: u16x32<Self>) -> u16x32<Self> {
@@ -4108,6 +4259,15 @@ impl Simd for Avx2 {
         self.combine_mask32x8(self.simd_gt_i32x8(a0, b0), self.simd_gt_i32x8(a1, b1))
     }
     #[inline(always)]
+    fn permute_within_blocks_i32x16(self, a: i32x16<Self>, b: mask32x16<Self>) -> i32x16<Self> {
+        let (a0, a1) = self.split_i32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_i32x8(
+            self.permute_within_blocks_i32x8(a0, b0),
+            self.permute_within_blocks_i32x8(a1, b1),
+        )
+    }
+    #[inline(always)]
     fn zip_low_i32x16(self, a: i32x16<Self>, b: i32x16<Self>) -> i32x16<Self> {
         let (a0, _) = self.split_i32x16(a);
         let (b0, _) = self.split_i32x16(b);
@@ -4272,6 +4432,15 @@ impl Simd for Avx2 {
         let (a0, a1) = self.split_u32x16(a);
         let (b0, b1) = self.split_u32x16(b);
         self.combine_mask32x8(self.simd_gt_u32x8(a0, b0), self.simd_gt_u32x8(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_u32x16(self, a: u32x16<Self>, b: mask32x16<Self>) -> u32x16<Self> {
+        let (a0, a1) = self.split_u32x16(a);
+        let (b0, b1) = self.split_mask32x16(b);
+        self.combine_u32x8(
+            self.permute_within_blocks_u32x8(a0, b0),
+            self.permute_within_blocks_u32x8(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_u32x16(self, a: u32x16<Self>, b: u32x16<Self>) -> u32x16<Self> {
@@ -4515,6 +4684,15 @@ impl Simd for Avx2 {
         let (a0, a1) = self.split_f64x8(a);
         let (b0, b1) = self.split_f64x8(b);
         self.combine_mask64x4(self.simd_gt_f64x4(a0, b0), self.simd_gt_f64x4(a1, b1))
+    }
+    #[inline(always)]
+    fn permute_within_blocks_f64x8(self, a: f64x8<Self>, b: mask64x8<Self>) -> f64x8<Self> {
+        let (a0, a1) = self.split_f64x8(a);
+        let (b0, b1) = self.split_mask64x8(b);
+        self.combine_f64x4(
+            self.permute_within_blocks_f64x4(a0, b0),
+            self.permute_within_blocks_f64x4(a1, b1),
+        )
     }
     #[inline(always)]
     fn zip_low_f64x8(self, a: f64x8<Self>, b: f64x8<Self>) -> f64x8<Self> {

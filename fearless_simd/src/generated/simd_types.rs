@@ -266,6 +266,11 @@ impl<S: Simd> crate::SimdFloat<f32, S> for f32x4<S> {
         self.simd.simd_gt_f32x4(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f32x4<S> {
+        self.simd
+            .permute_within_blocks_f32x4(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f32x4<S> {
         self.simd.zip_low_f32x4(self, rhs.simd_into(self.simd))
     }
@@ -573,6 +578,11 @@ impl<S: Simd> crate::SimdInt<i8, S> for i8x16<S> {
         self.simd.simd_gt_i8x16(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i8x16<S> {
+        self.simd
+            .permute_within_blocks_i8x16(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i8x16<S> {
         self.simd.zip_low_i8x16(self, rhs.simd_into(self.simd))
     }
@@ -830,6 +840,11 @@ impl<S: Simd> crate::SimdInt<u8, S> for u8x16<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask8x16<S> {
         self.simd.simd_gt_u8x16(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u8x16<S> {
+        self.simd
+            .permute_within_blocks_u8x16(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u8x16<S> {
@@ -1258,6 +1273,11 @@ impl<S: Simd> crate::SimdInt<i16, S> for i16x8<S> {
         self.simd.simd_gt_i16x8(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i16x8<S> {
+        self.simd
+            .permute_within_blocks_i16x8(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i16x8<S> {
         self.simd.zip_low_i16x8(self, rhs.simd_into(self.simd))
     }
@@ -1511,6 +1531,11 @@ impl<S: Simd> crate::SimdInt<u16, S> for u16x8<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask16x8<S> {
         self.simd.simd_gt_u16x8(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u16x8<S> {
+        self.simd
+            .permute_within_blocks_u16x8(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u16x8<S> {
@@ -1926,6 +1951,11 @@ impl<S: Simd> crate::SimdInt<i32, S> for i32x4<S> {
         self.simd.simd_gt_i32x4(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i32x4<S> {
+        self.simd
+            .permute_within_blocks_i32x4(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i32x4<S> {
         self.simd.zip_low_i32x4(self, rhs.simd_into(self.simd))
     }
@@ -2175,6 +2205,11 @@ impl<S: Simd> crate::SimdInt<u32, S> for u32x4<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask32x4<S> {
         self.simd.simd_gt_u32x4(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u32x4<S> {
+        self.simd
+            .permute_within_blocks_u32x4(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u32x4<S> {
@@ -2596,6 +2631,11 @@ impl<S: Simd> crate::SimdFloat<f64, S> for f64x2<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask64x2<S> {
         self.simd.simd_gt_f64x2(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f64x2<S> {
+        self.simd
+            .permute_within_blocks_f64x2(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f64x2<S> {
@@ -3073,6 +3113,11 @@ impl<S: Simd> crate::SimdFloat<f32, S> for f32x8<S> {
         self.simd.simd_gt_f32x8(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f32x8<S> {
+        self.simd
+            .permute_within_blocks_f32x8(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f32x8<S> {
         self.simd.zip_low_f32x8(self, rhs.simd_into(self.simd))
     }
@@ -3396,6 +3441,11 @@ impl<S: Simd> crate::SimdInt<i8, S> for i8x32<S> {
         self.simd.simd_gt_i8x32(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i8x32<S> {
+        self.simd
+            .permute_within_blocks_i8x32(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i8x32<S> {
         self.simd.zip_low_i8x32(self, rhs.simd_into(self.simd))
     }
@@ -3669,6 +3719,11 @@ impl<S: Simd> crate::SimdInt<u8, S> for u8x32<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask8x32<S> {
         self.simd.simd_gt_u8x32(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u8x32<S> {
+        self.simd
+            .permute_within_blocks_u8x32(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u8x32<S> {
@@ -4121,6 +4176,11 @@ impl<S: Simd> crate::SimdInt<i16, S> for i16x16<S> {
         self.simd.simd_gt_i16x16(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i16x16<S> {
+        self.simd
+            .permute_within_blocks_i16x16(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i16x16<S> {
         self.simd.zip_low_i16x16(self, rhs.simd_into(self.simd))
     }
@@ -4382,6 +4442,11 @@ impl<S: Simd> crate::SimdInt<u16, S> for u16x16<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask16x16<S> {
         self.simd.simd_gt_u16x16(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u16x16<S> {
+        self.simd
+            .permute_within_blocks_u16x16(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u16x16<S> {
@@ -4814,6 +4879,11 @@ impl<S: Simd> crate::SimdInt<i32, S> for i32x8<S> {
         self.simd.simd_gt_i32x8(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i32x8<S> {
+        self.simd
+            .permute_within_blocks_i32x8(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i32x8<S> {
         self.simd.zip_low_i32x8(self, rhs.simd_into(self.simd))
     }
@@ -5072,6 +5142,11 @@ impl<S: Simd> crate::SimdInt<u32, S> for u32x8<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask32x8<S> {
         self.simd.simd_gt_u32x8(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u32x8<S> {
+        self.simd
+            .permute_within_blocks_u32x8(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u32x8<S> {
@@ -5502,6 +5577,11 @@ impl<S: Simd> crate::SimdFloat<f64, S> for f64x4<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask64x4<S> {
         self.simd.simd_gt_f64x4(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f64x4<S> {
+        self.simd
+            .permute_within_blocks_f64x4(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f64x4<S> {
@@ -5984,6 +6064,11 @@ impl<S: Simd> crate::SimdFloat<f32, S> for f32x16<S> {
         self.simd.simd_gt_f32x16(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f32x16<S> {
+        self.simd
+            .permute_within_blocks_f32x16(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f32x16<S> {
         self.simd.zip_low_f32x16(self, rhs.simd_into(self.simd))
     }
@@ -6336,6 +6421,11 @@ impl<S: Simd> crate::SimdInt<i8, S> for i8x64<S> {
         self.simd.simd_gt_i8x64(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i8x64<S> {
+        self.simd
+            .permute_within_blocks_i8x64(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i8x64<S> {
         self.simd.zip_low_i8x64(self, rhs.simd_into(self.simd))
     }
@@ -6638,6 +6728,11 @@ impl<S: Simd> crate::SimdInt<u8, S> for u8x64<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask8x64<S> {
         self.simd.simd_gt_u8x64(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u8x64<S> {
+        self.simd
+            .permute_within_blocks_u8x64(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u8x64<S> {
@@ -7132,6 +7227,11 @@ impl<S: Simd> crate::SimdInt<i16, S> for i16x32<S> {
         self.simd.simd_gt_i16x32(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i16x32<S> {
+        self.simd
+            .permute_within_blocks_i16x32(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i16x32<S> {
         self.simd.zip_low_i16x32(self, rhs.simd_into(self.simd))
     }
@@ -7406,6 +7506,11 @@ impl<S: Simd> crate::SimdInt<u16, S> for u16x32<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask16x32<S> {
         self.simd.simd_gt_u16x32(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u16x32<S> {
+        self.simd
+            .permute_within_blocks_u16x32(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u16x32<S> {
@@ -7856,6 +7961,11 @@ impl<S: Simd> crate::SimdInt<i32, S> for i32x16<S> {
         self.simd.simd_gt_i32x16(self, rhs.simd_into(self.simd))
     }
     #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> i32x16<S> {
+        self.simd
+            .permute_within_blocks_i32x16(self, indices.simd_into(self.simd))
+    }
+    #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> i32x16<S> {
         self.simd.zip_low_i32x16(self, rhs.simd_into(self.simd))
     }
@@ -8119,6 +8229,11 @@ impl<S: Simd> crate::SimdInt<u32, S> for u32x16<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask32x16<S> {
         self.simd.simd_gt_u32x16(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> u32x16<S> {
+        self.simd
+            .permute_within_blocks_u32x16(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> u32x16<S> {
@@ -8560,6 +8675,11 @@ impl<S: Simd> crate::SimdFloat<f64, S> for f64x8<S> {
     #[inline(always)]
     fn simd_gt(self, rhs: impl SimdInto<Self, S>) -> mask64x8<S> {
         self.simd.simd_gt_f64x8(self, rhs.simd_into(self.simd))
+    }
+    #[inline(always)]
+    fn permute_within_blocks(self, indices: impl SimdInto<Self::Mask, S>) -> f64x8<S> {
+        self.simd
+            .permute_within_blocks_f64x8(self, indices.simd_into(self.simd))
     }
     #[inline(always)]
     fn zip_low(self, rhs: impl SimdInto<Self, S>) -> f64x8<S> {

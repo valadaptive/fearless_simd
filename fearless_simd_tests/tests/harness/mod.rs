@@ -2751,3 +2751,228 @@ fn index_consistency<S: Simd>(simd: S) {
         assert_eq!(i, *v.index_mut(i) as usize);
     }
 }
+
+#[simd_test]
+fn permute_within_blocks_f32x4<S: Simd>(simd: S) {
+    let a = f32x4::from_slice(simd, &[10.0, 20.0, 30.0, 40.0]);
+    // Reverse the elements
+    let indices = mask32x4::from_slice(simd, &[3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [40.0, 30.0, 20.0, 10.0]
+    );
+
+    // Broadcast first element
+    let indices = mask32x4::from_slice(simd, &[0, 0, 0, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [10.0, 10.0, 10.0, 10.0]
+    );
+
+    // Interleave pattern
+    let indices = mask32x4::from_slice(simd, &[0, 2, 1, 3]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [10.0, 30.0, 20.0, 40.0]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_f32x8<S: Simd>(simd: S) {
+    let a = f32x8::from_slice(simd, &[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0]);
+    // Reverse within each 4-element block
+    let indices = mask32x8::from_slice(simd, &[3, 2, 1, 0, 3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [40.0, 30.0, 20.0, 10.0, 80.0, 70.0, 60.0, 50.0]
+    );
+
+    // Broadcast first element of each block
+    let indices = mask32x8::from_slice(simd, &[0, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [10.0, 10.0, 10.0, 10.0, 50.0, 50.0, 50.0, 50.0]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_i8x16<S: Simd>(simd: S) {
+    let a = i8x16::from_slice(
+        simd,
+        &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    );
+    // Reverse all elements
+    let indices = mask8x16::from_slice(
+        simd,
+        &[15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+    );
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    );
+
+    // Broadcast first element
+    let indices = mask8x16::from_slice(simd, &[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_u8x16<S: Simd>(simd: S) {
+    let a = u8x16::from_slice(
+        simd,
+        &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    );
+    // Swap adjacent pairs
+    let indices = mask8x16::from_slice(
+        simd,
+        &[1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14],
+    );
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_i16x8<S: Simd>(simd: S) {
+    let a = i16x8::from_slice(simd, &[100, 200, 300, 400, 500, 600, 700, 800]);
+    // Reverse all elements
+    let indices = mask16x8::from_slice(simd, &[7, 6, 5, 4, 3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [800, 700, 600, 500, 400, 300, 200, 100]
+    );
+
+    // Duplicate odd elements
+    let indices = mask16x8::from_slice(simd, &[1, 1, 3, 3, 5, 5, 7, 7]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [200, 200, 400, 400, 600, 600, 800, 800]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_u16x8<S: Simd>(simd: S) {
+    let a = u16x8::from_slice(simd, &[10, 20, 30, 40, 50, 60, 70, 80]);
+    // Rotate left by 2
+    let indices = mask16x8::from_slice(simd, &[2, 3, 4, 5, 6, 7, 0, 1]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [30, 40, 50, 60, 70, 80, 10, 20]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_i32x4<S: Simd>(simd: S) {
+    let a = i32x4::from_slice(simd, &[1000, 2000, 3000, 4000]);
+    // Reverse the elements
+    let indices = mask32x4::from_slice(simd, &[3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [4000, 3000, 2000, 1000]
+    );
+
+    // Rotate right by 1
+    let indices = mask32x4::from_slice(simd, &[3, 0, 1, 2]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [4000, 1000, 2000, 3000]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_u32x4<S: Simd>(simd: S) {
+    let a = u32x4::from_slice(simd, &[100, 200, 300, 400]);
+    // Swap halves
+    let indices = mask32x4::from_slice(simd, &[2, 3, 0, 1]);
+    assert_eq!(a.permute_within_blocks(indices).val, [300, 400, 100, 200]);
+}
+
+#[simd_test]
+fn permute_within_blocks_f64x2<S: Simd>(simd: S) {
+    let a = f64x2::from_slice(simd, &[1.5, 2.5]);
+    // Swap elements
+    let indices = mask64x2::from_slice(simd, &[1, 0]);
+    assert_eq!(a.permute_within_blocks(indices).val, [2.5, 1.5]);
+
+    // Duplicate first element
+    let indices = mask64x2::from_slice(simd, &[0, 0]);
+    assert_eq!(a.permute_within_blocks(indices).val, [1.5, 1.5]);
+
+    // Duplicate second element
+    let indices = mask64x2::from_slice(simd, &[1, 1]);
+    assert_eq!(a.permute_within_blocks(indices).val, [2.5, 2.5]);
+}
+
+#[simd_test]
+fn permute_within_blocks_f64x4<S: Simd>(simd: S) {
+    let a = f64x4::from_slice(simd, &[1.0, 2.0, 3.0, 4.0]);
+    // Swap within each 2-element block
+    let indices = mask64x4::from_slice(simd, &[1, 0, 1, 0]);
+    assert_eq!(a.permute_within_blocks(indices).val, [2.0, 1.0, 4.0, 3.0]);
+
+    // Broadcast first element of each block
+    let indices = mask64x4::from_slice(simd, &[0, 0, 0, 0]);
+    assert_eq!(a.permute_within_blocks(indices).val, [1.0, 1.0, 3.0, 3.0]);
+}
+
+#[simd_test]
+fn permute_within_blocks_i8x32<S: Simd>(simd: S) {
+    let a = i8x32::from_slice(
+        simd,
+        &[
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31,
+        ],
+    );
+    // Reverse within each 16-element block
+    let indices = mask8x32::from_slice(
+        simd,
+        &[
+            15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8, 7,
+            6, 5, 4, 3, 2, 1, 0,
+        ],
+    );
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [
+            15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 31, 30, 29, 28, 27, 26, 25, 24,
+            23, 22, 21, 20, 19, 18, 17, 16,
+        ]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_i16x16<S: Simd>(simd: S) {
+    let a = i16x16::from_slice(
+        simd,
+        &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    );
+    // Reverse within each 8-element block
+    let indices = mask16x16::from_slice(simd, &[7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8]
+    );
+}
+
+#[simd_test]
+fn permute_within_blocks_i32x8<S: Simd>(simd: S) {
+    let a = i32x8::from_slice(simd, &[0, 1, 2, 3, 4, 5, 6, 7]);
+    // Reverse within each 4-element block
+    let indices = mask32x8::from_slice(simd, &[3, 2, 1, 0, 3, 2, 1, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [3, 2, 1, 0, 7, 6, 5, 4]
+    );
+
+    // Broadcast first element of each block
+    let indices = mask32x8::from_slice(simd, &[0, 0, 0, 0, 0, 0, 0, 0]);
+    assert_eq!(
+        a.permute_within_blocks(indices).val,
+        [0, 0, 0, 0, 4, 4, 4, 4]
+    );
+}

@@ -206,7 +206,9 @@ fn simd_impl(ty: &VecType) -> TokenStream {
         {
             let ret_ty = sig.ret_ty(ty, TyFlavor::VecImpl);
             let call_args = match sig {
-                OpSig::Unary | OpSig::Cvt(_, _) | OpSig::Reinterpret(_, _) => quote! { self },
+                OpSig::Unary | OpSig::Cvt(_, _) | OpSig::Reinterpret(_, _) | OpSig::Permute => {
+                    quote! { self }
+                }
                 OpSig::Binary | OpSig::Compare | OpSig::Combine => {
                     quote! { self, rhs.simd_into(self.simd) }
                 }
@@ -216,7 +218,14 @@ fn simd_impl(ty: &VecType) -> TokenStream {
                 OpSig::Ternary => {
                     quote! { self, op1.simd_into(self.simd), op2.simd_into(self.simd) }
                 }
-                _ => quote! { todo!() },
+                OpSig::Splat
+                | OpSig::Select
+                | OpSig::Split
+                | OpSig::Zip(_)
+                | OpSig::Unzip(_)
+                | OpSig::WidenNarrow(_)
+                | OpSig::LoadInterleaved(_, _)
+                | OpSig::StoreInterleaved(_, _) => unreachable!(),
             };
             methods.push(quote! {
                 #[inline(always)]
@@ -272,7 +281,16 @@ fn simd_vec_impl(ty: &VecType) -> TokenStream {
                 OpSig::Ternary => {
                     quote! { self, op1.simd_into(self.simd), op2.simd_into(self.simd) }
                 }
-                _ => quote! { todo!() },
+                OpSig::Permute => quote! { self, indices.simd_into(self.simd) },
+                OpSig::Splat
+                | OpSig::Select
+                | OpSig::Split
+                | OpSig::WidenNarrow(_)
+                | OpSig::LoadInterleaved(_, _)
+                | OpSig::StoreInterleaved(_, _)
+                | OpSig::Cvt(_, _)
+                | OpSig::Reinterpret(_, _)
+                | OpSig::Shift => unreachable!("these ops belong to SimdBase"),
             };
             methods.push(quote! {
                 #[inline(always)]

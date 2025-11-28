@@ -4,6 +4,7 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote};
 
+use crate::arch::wasm::simple_intrinsic;
 use crate::generic::scalar_binary;
 use crate::ops::valid_reinterpret;
 use crate::{
@@ -192,6 +193,38 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                 }
                 OpSig::Combine => generic_combine(vec_ty),
                 OpSig::Split => generic_split(vec_ty),
+                OpSig::Permute => {
+                    let mask_ty = vec_ty.mask_ty();
+                    let table_mask = match vec_ty.scalar_bits {
+                        8 => quote! { b.into() },
+                        16 | 32 | 64 => {
+                            // To turn a 16/32/64-bit shuffle into an 8-bit shuffle, we need to duplicate the lowest
+                            // byte of each lane into the upper bytes, multiply by the lane width in bytes, then add a
+                            // byte-level offset. The duplicate/multiply can be done in a single multiply.
+                            let (mul, add) = match vec_ty.scalar_bits {
+                                16 => (quote! { 0x0202 }, quote! { 0x0100 }),
+                                32 => (quote! { 0x04040404 }, quote! { 0x03020100 }),
+                                64 => {
+                                    (quote! { 0x0808080808080808 }, quote! { 0x0706050403020100 })
+                                }
+                                _ => unreachable!(),
+                            };
+
+                            let mul_op = simple_intrinsic("mul", &mask_ty);
+                            let add_op = simple_intrinsic("add", &mask_ty);
+                            let splat = simple_intrinsic("splat", &mask_ty);
+                            quote! { #add_op(#mul_op(b.into(), #splat(#mul)), #splat(#add)) }
+                        }
+                        _ => unreachable!(),
+                    };
+
+                    quote! {
+                        #method_sig {
+                            let table_mask = #table_mask;
+                            i8x16_swizzle(a.into(), table_mask).simd_into(self)
+                        }
+                    }
+                }
                 OpSig::Zip(is_low) => {
                     let (indices, shuffle_fn) = match vec_ty.scalar_bits {
                         8 => {

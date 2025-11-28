@@ -5,7 +5,7 @@ use crate::arch::fallback;
 use crate::generic::{generic_combine, generic_op, generic_split};
 use crate::ops::{OpSig, TyFlavor, ops_for_type, valid_reinterpret};
 use crate::types::{SIMD_TYPES, ScalarType, VecType, type_imports};
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, Literal, Span, TokenStream};
 use quote::quote;
 
 #[derive(Clone, Copy)]
@@ -281,6 +281,21 @@ fn mk_simd_impl() -> TokenStream {
                 }
                 OpSig::Combine => generic_combine(vec_ty),
                 OpSig::Split => generic_split(vec_ty),
+                OpSig::Permute => {
+                    let mask_ty = vec_ty.mask_ty();
+                    let len = match mask_ty.scalar_bits {
+                        8 => Literal::i8_unsuffixed(vec_ty.len as _),
+                        16 => Literal::i16_unsuffixed(vec_ty.len as _),
+                        32 => Literal::i32_unsuffixed(vec_ty.len as _),
+                        64 => Literal::i64_unsuffixed(vec_ty.len as _),
+                        _ => unreachable!(),
+                    };
+                    quote! {
+                        #method_sig {
+                            core::array::from_fn(|i| if (0..#len).contains(&b[i]) {a[b[i] as usize]} else {Default::default()}).simd_into(self)
+                        }
+                    }
+                }
                 OpSig::Zip(zip1) => {
                     let indices = if zip1 {
                         0..vec_ty.len / 2
