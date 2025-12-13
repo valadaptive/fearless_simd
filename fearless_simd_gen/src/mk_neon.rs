@@ -294,7 +294,7 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                 }
                 OpSig::Ternary => {
                     let args = match method {
-                        "mul_add" | "mul_sub" => [
+                        "mul_add" | "mul_sub" | "neg_mul_add" | "neg_mul_sub" => [
                             quote! { c.into() },
                             quote! { b.into() },
                             quote! { a.into() },
@@ -307,7 +307,7 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                     };
 
                     let mut expr = neon::expr(method, vec_ty, &args);
-                    if method == "mul_sub" {
+                    if matches!(method, "mul_sub" | "neg_mul_sub") {
                         // -(c - a * b) = (a * b - c)
                         let neg = simple_intrinsic("vneg", vec_ty);
                         expr = quote! { #neg(#expr) };

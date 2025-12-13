@@ -110,6 +110,16 @@ fn madd_f32x4<S: Simd>(simd: S) {
 }
 
 #[simd_test]
+fn nmadd_f32x4<S: Simd>(simd: S) {
+    // neg_mul_add computes c - a * b
+    let a = f32x4::from_slice(simd, &[2.0, -3.0, 4.0, 5.0]);
+    let b = f32x4::from_slice(simd, &[5.0, 2.0, 3.0, 1.0]);
+    let c = f32x4::from_slice(simd, &[1.0, 10.0, 5.0, 8.0]);
+    let result = a.neg_mul_add(b, c);
+    assert_eq!(*result, [-9.0, 16.0, -7.0, 3.0]);
+}
+
+#[simd_test]
 fn max_f32x4<S: Simd>(simd: S) {
     let a = f32x4::from_slice(simd, &[2.0, -3.0, 0.0, 0.5]);
     let b = f32x4::from_slice(simd, &[1.0, -2.0, 7.0, 3.0]);
@@ -143,6 +153,16 @@ fn msub_f32x4<S: Simd>(simd: S) {
     let b = f32x4::from_slice(simd, &[10.0, 10.0, 10.0, 10.0]);
     let c = f32x4::from_slice(simd, &[1.0, 2.0, 3.0, 4.0]);
     assert_eq!(a.mul_sub(b, c).val, [19.0, 28.0, 37.0, 46.0]);
+}
+
+#[simd_test]
+fn nmsub_f32x4<S: Simd>(simd: S) {
+    // neg_mul_sub computes -c - a * b
+    let a = f32x4::from_slice(simd, &[2.0, 3.0, 4.0, 5.0]);
+    let b = f32x4::from_slice(simd, &[5.0, 2.0, 3.0, 1.0]);
+    let c = f32x4::from_slice(simd, &[1.0, 10.0, 5.0, 8.0]);
+    let result = a.neg_mul_sub(b, c);
+    assert_eq!(*result, [-11.0, -16.0, -17.0, -13.0]);
 }
 
 #[simd_test]
@@ -2705,11 +2725,31 @@ fn msub_f64x2<S: Simd>(simd: S) {
 }
 
 #[simd_test]
+fn nmsub_f64x2<S: Simd>(simd: S) {
+    // neg_mul_sub computes -c - a * b
+    let a = f64x2::from_slice(simd, &[2.0, 3.0]);
+    let b = f64x2::from_slice(simd, &[4.0, 5.0]);
+    let c = f64x2::from_slice(simd, &[10.0, 20.0]);
+    let result = a.neg_mul_sub(b, c);
+    assert_eq!(*result, [-18.0, -35.0]);
+}
+
+#[simd_test]
 fn madd_f64x2<S: Simd>(simd: S) {
     let a = f64x2::from_slice(simd, &[1.0, 2.0]);
     let b = f64x2::from_slice(simd, &[4.0, 5.0]);
     let c = f64x2::from_slice(simd, &[2.0, 3.0]);
     assert_eq!(a.mul_add(b, c).val, [6.0, 13.0]);
+}
+
+#[simd_test]
+fn nmadd_f64x2<S: Simd>(simd: S) {
+    // neg_mul_add computes c - a * b
+    let a = f64x2::from_slice(simd, &[2.0, 3.0]);
+    let b = f64x2::from_slice(simd, &[4.0, 5.0]);
+    let c = f64x2::from_slice(simd, &[10.0, 20.0]);
+    let result = a.neg_mul_add(b, c);
+    assert_eq!(*result, [2.0, 5.0]);
 }
 
 #[simd_test]

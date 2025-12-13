@@ -188,14 +188,11 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                     }
                 }
                 OpSig::Ternary => {
-                    if matches!(method, "mul_add" | "mul_sub") {
-                        let add_sub = generic_op_name(
-                            if method == "mul_add" { "add" } else { "sub" },
-                            vec_ty,
-                        );
-                        let mul = generic_op_name("mul", vec_ty);
-
-                        let c = if method == "mul_sub" {
+                    if matches!(
+                        method,
+                        "mul_add" | "mul_sub" | "neg_mul_add" | "neg_mul_sub"
+                    ) {
+                        let c = if matches!(method, "mul_sub" | "neg_mul_sub") {
                             // WebAssembly just... forgot fused multiply-subtract? It seems the
                             // initial proposal
                             // (https://github.com/WebAssembly/relaxed-simd/issues/27) confused it
@@ -205,17 +202,38 @@ fn mk_simd_impl(level: Level) -> TokenStream {
                         } else {
                             quote! { c.into() }
                         };
-                        let relaxed_madd = simple_intrinsic("relaxed_madd", vec_ty);
+                        let relaxed_op_name = match method {
+                            "mul_add" | "mul_sub" => "relaxed_madd",
+                            "neg_mul_add" | "neg_mul_sub" => "relaxed_nmadd",
+                            _ => unreachable!(),
+                        };
+                        let relaxed_op = simple_intrinsic(relaxed_op_name, vec_ty);
+
+                        let fallback = match method {
+                            "mul_add" => {
+                                quote! { a * b + c }
+                            }
+                            "mul_sub" => {
+                                quote! { a * b - c }
+                            }
+                            "neg_mul_add" => {
+                                quote! { c - a * b }
+                            }
+                            "neg_mul_sub" => {
+                                quote! { -c - a * b }
+                            }
+                            _ => unreachable!(),
+                        };
 
                         quote! {
                             #[cfg(target_feature = "relaxed-simd")]
                             #method_sig {
-                                #relaxed_madd(a.into(), b.into(), #c).simd_into(self)
+                                #relaxed_op(a.into(), b.into(), #c).simd_into(self)
                             }
 
                             #[cfg(not(target_feature = "relaxed-simd"))]
                             #method_sig {
-                                self.#add_sub(self.#mul(a, b), c)
+                                #fallback
                             }
                         }
                     } else {

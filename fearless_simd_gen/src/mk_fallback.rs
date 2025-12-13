@@ -231,33 +231,33 @@ fn mk_simd_impl() -> TokenStream {
                     }
                 }
                 OpSig::Ternary => {
-                    if method == "mul_add" {
-                        // TODO: This is has slightly different semantics than a fused multiply-add,
-                        // since we are not actually fusing it, should this be documented?
-                        quote! {
-                            #method_sig {
-                               a.mul(b).add(c)
-                            }
+                    let expr = match method {
+                        "mul_add" => {
+                            quote! { a * b + c }
                         }
-                    } else if method == "mul_sub" {
-                        // TODO: Same as above
-                        quote! {
-                            #method_sig {
-                                a.mul(b).sub(c)
-                            }
+                        "mul_sub" => {
+                            quote! { a * b - c }
                         }
-                    } else {
-                        let args = [
-                            quote! { a.into() },
-                            quote! { b.into() },
-                            quote! { c.into() },
-                        ];
+                        "neg_mul_add" => {
+                            quote! { c - a * b }
+                        }
+                        "neg_mul_sub" => {
+                            quote! { -c - a * b }
+                        }
+                        _ => {
+                            let args = [
+                                quote! { a.into() },
+                                quote! { b.into() },
+                                quote! { c.into() },
+                            ];
 
-                        let expr = fallback::expr(method, vec_ty, &args);
-                        quote! {
-                            #method_sig {
-                               #expr.simd_into(self)
-                            }
+                            let expr = fallback::expr(method, vec_ty, &args);
+                            quote! { #expr.simd_into(self) }
+                        }
+                    };
+                    quote! {
+                        #method_sig {
+                            #expr
                         }
                     }
                 }

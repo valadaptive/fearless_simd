@@ -293,6 +293,20 @@ const FLOAT_OPS: &[Op] = &[
         Depending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors.",
     ),
     Op::new(
+        "neg_mul_add",
+        OpKind::VecTraitMethod,
+        OpSig::Ternary,
+        "Compute `-({arg0} * {arg1}) + {arg2}` (fused negated-multiply-add) for each element.\n\n\
+        Depending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors.",
+    ),
+    Op::new(
+        "neg_mul_sub",
+        OpKind::VecTraitMethod,
+        OpSig::Ternary,
+        "Compute `-({arg0} * {arg1}) - {arg2}` (fused negated-multiply-subtract) for each element.\n\n\
+        Depending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors.",
+    ),
+    Op::new(
         "floor",
         OpKind::VecTraitMethod,
         OpSig::Unary,

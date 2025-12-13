@@ -166,6 +166,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f32x4(self, a: f32x4<Self>, b: f32x4<Self>, c: f32x4<Self>) -> f32x4<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f32x4(self, a: f32x4<Self>, b: f32x4<Self>, c: f32x4<Self>) -> f32x4<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f32x4(self, a: f32x4<Self>, b: f32x4<Self>, c: f32x4<Self>) -> f32x4<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f32x4(self, a: f32x4<Self>, b: f32x4<Self>, c: f32x4<Self>) -> f32x4<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f32x4(self, a: f32x4<Self>) -> f32x4<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -659,6 +663,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f64x2(self, a: f64x2<Self>, b: f64x2<Self>, c: f64x2<Self>) -> f64x2<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f64x2(self, a: f64x2<Self>, b: f64x2<Self>, c: f64x2<Self>) -> f64x2<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f64x2(self, a: f64x2<Self>, b: f64x2<Self>, c: f64x2<Self>) -> f64x2<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f64x2(self, a: f64x2<Self>, b: f64x2<Self>, c: f64x2<Self>) -> f64x2<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f64x2(self, a: f64x2<Self>) -> f64x2<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -752,6 +760,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f32x8(self, a: f32x8<Self>, b: f32x8<Self>, c: f32x8<Self>) -> f32x8<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f32x8(self, a: f32x8<Self>, b: f32x8<Self>, c: f32x8<Self>) -> f32x8<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f32x8(self, a: f32x8<Self>, b: f32x8<Self>, c: f32x8<Self>) -> f32x8<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f32x8(self, a: f32x8<Self>, b: f32x8<Self>, c: f32x8<Self>) -> f32x8<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f32x8(self, a: f32x8<Self>) -> f32x8<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -1267,6 +1279,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f64x4(self, a: f64x4<Self>, b: f64x4<Self>, c: f64x4<Self>) -> f64x4<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f64x4(self, a: f64x4<Self>, b: f64x4<Self>, c: f64x4<Self>) -> f64x4<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f64x4(self, a: f64x4<Self>, b: f64x4<Self>, c: f64x4<Self>) -> f64x4<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f64x4(self, a: f64x4<Self>, b: f64x4<Self>, c: f64x4<Self>) -> f64x4<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f64x4(self, a: f64x4<Self>) -> f64x4<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -1364,6 +1380,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f32x16(self, a: f32x16<Self>, b: f32x16<Self>, c: f32x16<Self>) -> f32x16<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f32x16(self, a: f32x16<Self>, b: f32x16<Self>, c: f32x16<Self>) -> f32x16<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f32x16(self, a: f32x16<Self>, b: f32x16<Self>, c: f32x16<Self>) -> f32x16<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f32x16(self, a: f32x16<Self>, b: f32x16<Self>, c: f32x16<Self>) -> f32x16<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f32x16(self, a: f32x16<Self>) -> f32x16<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -1873,6 +1893,10 @@ pub trait Simd: Sized + Clone + Copy + Send + Sync + Seal + 'static {
     fn mul_add_f64x8(self, a: f64x8<Self>, b: f64x8<Self>, c: f64x8<Self>) -> f64x8<Self>;
     #[doc = "Compute `(a * b) - c` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub_f64x8(self, a: f64x8<Self>, b: f64x8<Self>, c: f64x8<Self>) -> f64x8<Self>;
+    #[doc = "Compute `-(a * b) + c` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add_f64x8(self, a: f64x8<Self>, b: f64x8<Self>, c: f64x8<Self>) -> f64x8<Self>;
+    #[doc = "Compute `-(a * b) - c` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub_f64x8(self, a: f64x8<Self>, b: f64x8<Self>, c: f64x8<Self>) -> f64x8<Self>;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor_f64x8(self, a: f64x8<Self>) -> f64x8<Self>;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]
@@ -2024,6 +2048,10 @@ pub trait SimdFloat<Element: SimdElement, S: Simd>:
     fn mul_add(self, op1: impl SimdInto<Self, S>, op2: impl SimdInto<Self, S>) -> Self;
     #[doc = "Compute `(self * op1) - op2` (fused multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply followed by a subtract, which will result in two rounding errors."]
     fn mul_sub(self, op1: impl SimdInto<Self, S>, op2: impl SimdInto<Self, S>) -> Self;
+    #[doc = "Compute `-(self * op1) + op2` (fused negated-multiply-add) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and add, which will result in two rounding errors."]
+    fn neg_mul_add(self, op1: impl SimdInto<Self, S>, op2: impl SimdInto<Self, S>) -> Self;
+    #[doc = "Compute `-(self * op1) - op2` (fused negated-multiply-subtract) for each element.\n\nDepending on hardware support, the result may be computed with only one rounding error, or may be implemented as a regular multiply, negate, and subtract, which will result in two rounding errors."]
+    fn neg_mul_sub(self, op1: impl SimdInto<Self, S>, op2: impl SimdInto<Self, S>) -> Self;
     #[doc = "Return the largest integer less than or equal to each element, that is, round towards negative infinity."]
     fn floor(self) -> Self;
     #[doc = "Return the smallest integer greater than or equal to each element, that is, round towards positive infinity."]

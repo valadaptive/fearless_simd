@@ -511,20 +511,18 @@ pub(crate) fn handle_ternary(
     method: &str,
     vec_ty: &VecType,
 ) -> TokenStream {
-    match method {
+    let expr = match method {
         "mul_add" => {
-            quote! {
-                #method_sig {
-                    a * b + c
-                }
-            }
+            quote! { a * b + c }
         }
         "mul_sub" => {
-            quote! {
-                #method_sig {
-                    a * b - c
-                }
-            }
+            quote! { a * b - c }
+        }
+        "neg_mul_add" => {
+            quote! { c - a * b }
+        }
+        "neg_mul_sub" => {
+            quote! { -c - a * b }
         }
         _ => {
             let args = [
@@ -534,11 +532,13 @@ pub(crate) fn handle_ternary(
             ];
 
             let expr = x86::expr(method, vec_ty, &args);
-            quote! {
-                #method_sig {
-                   #expr.simd_into(self)
-                }
-            }
+            quote! { #expr.simd_into(self) }
+        }
+    };
+
+    quote! {
+        #method_sig {
+            #expr
         }
     }
 }
